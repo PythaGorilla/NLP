@@ -1,0 +1,78 @@
+import numpy as np
+a = np.matrix('1,2;3,4')
+b = np.array([[1, 2], [3, 4]])
+strA = "intention"
+strB = "execution"
+
+
+def Generate_matrix(source, target):
+    n = len(source)
+    m = len(target)
+    mdim = max(n, m) + 1
+    edit_matrix = np.zeros((mdim, mdim))
+
+#   edit_matrix[-1, ] = [i for i in range(mdim)]
+#   edit_matrix[:, 0] = [mdim - 1 - i for i in range(mdim)]###
+
+    for i in range(mdim):
+        for t in range(mdim):
+            if i == 0:
+                edit_matrix[-i - 1, t] = t
+            elif t == 0:
+                edit_matrix[-i - 1, t] = i
+            else:
+
+                insDis = edit_matrix[-i, t] + 1    # down
+                delDis = edit_matrix[-i - 1, t - 1] + 1   # left
+
+                if source[i - 1] == target[t - 1]:
+                    # print source[i - 1],target[t - 1]
+                    subDis = edit_matrix[-i, t - 1] + 0
+                else:
+                    subDis = edit_matrix[-i, t - 1] + 2  # on dia
+
+                edit_matrix[-i - 1, t] = min(insDis, delDis, subDis)
+    print edit_matrix
+    return edit_matrix
+
+
+m1 = Generate_matrix(strA, strB)
+print m1.shape[0] - 2
+
+
+def backtrace(matrix, i, t):
+    oplist = []
+    # for i in range(matrix.shape[0] - 2):
+    #     if i==9:
+    #         print "breaking"
+    #         break
+    #     for t in range(matrix.shape[1] - 1, 1, -1):
+
+    #         if t==0:
+    #             break
+    print i, t
+    if i == matrix.shape[0] - 1 or t == 0:
+        print oplist
+        return oplist
+
+    neighbour = {}
+    neighbour["deletion"] = matrix[i, t - 1]
+    neighbour["insertion"] = matrix[i + 1, t]
+    neighbour["subsitution"] = matrix[i + 1, t - 1]
+    minCell = min(matrix[i, t - 1], matrix[i + 1, t], matrix[i + 1, t - 1])
+    op = [key for key, value in neighbour.iteritems() if value == minCell][0]
+    print op
+    
+    if op == "deletion":
+        oplist.append("deletion")
+        return backtrace(matrix, i, t - 1)
+
+    if op == "insertion":
+        oplist.append("insertion")
+        return backtrace(matrix, i + 1, t)
+    if op == "subsitution":
+        oplist.append("subsitution")
+        return backtrace(matrix, i + 1, t - 1)
+
+
+backtrace(m1, 0, m1.shape[0] - 1)
